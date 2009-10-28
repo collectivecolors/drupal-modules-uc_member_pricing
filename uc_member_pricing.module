@@ -1,0 +1,169 @@
+<?php
+// $Id$
+
+/**
+ * uc_member_pricing.module
+ * ------------------------------------
+ *  
+ * This module provides users with the 'manage prices' role the ability to 
+ * specify prices ( actual or percentage offset from product sell price ) for
+ * specific users and all users of specified roles. on products.
+ * 
+ * > When a site visitor logs in, special pricing goes into effect.
+ * 
+ * > User prices override role prices, which override base product sell prices.
+ * 
+ * > If user has multiple roles with special pricing, then the lowest price is
+ *   used.
+ * 
+ * > Display individual prices on product view instead of base sell price.
+ * 
+ */
+
+//------------------------------------------------------------------------------
+// Constants
+//------------------------------------------------------------------------------
+
+/**
+ * Module permissions.
+ */
+define( 'PERM_MANAGE_PRICES', 'manage prices' );
+
+/**
+ * Pricing rule types.
+ */
+define( 'TYPE_USER', 'user' );
+define( 'TYPE_ROLE', 'role' );
+
+//------------------------------------------------------------------------------
+// Drupal hooks
+//------------------------------------------------------------------------------
+
+/**
+ * Implementation of hook_perm().
+ *
+ * @see http://api.drupal.org/api/function/hook_perm/6
+ */
+function uc_member_pricing_perm( ) {
+
+  return array ( 
+    PERM_MANAGE_PRICES 
+  );
+}
+
+//------------------------------------------------------------------------------
+
+/**
+ * Implementation of hook_menu().
+ * 
+ * Implemented pages:
+ * 
+ * 	node/{nid}/edit/prices/add            ( local task )
+ *  node/{nid}/edit/prices/edit/{ppid}    ( local task )
+ *  node/{nid}/edit/prices/delete/{ppid}  ( local task )
+ * 
+ *  where {nid} is a product node.
+ * 
+ * @see http://api.drupal.org/api/function/hook_menu/6
+ */
+function uc_member_pricing_menu( ) {
+  $items = array();
+    
+  $items['node/%node/edit/prices'] = array(
+    'title' => 'Prices',
+  	'page callback' => 'uc_member_pricing_list_prices',
+    'page arguments' => array(1),
+    'access callback' => 'uc_member_pricing_admin_access',
+    'access arguments' => array(1),
+    'weight' => -7,
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'uc_member_pricing.admin.inc',
+  );
+    
+  $items['node/%node/edit/prices/add'] = array(
+    'title' => 'Add product price rule',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('uc_member_pricing_add_price_form', 1),
+    'access callback' => 'uc_member_pricing_admin_access',
+    'access arguments' => array(1),
+    'weight' => -8,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_member_pricing.admin.inc',
+  );
+  
+  $items['node/%node/edit/prices/edit/%member_price_rule'] = array(
+    'title' => 'Edit product price rule',
+    'page callback' => 'drupal_get_form', 
+    'page arguments' => array('uc_member_pricing_edit_price_form', 5),
+    'access callback' => 'uc_member_pricing_admin_access',
+    'access arguments' => array(1),
+    'weight' => -6,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_member_pricing.admin.inc',
+  );
+    
+  $items['node/%node/edit/prices/delete/%member_price_rule'] = array(
+    'title' => 'Delete product price rule',
+    'page callback' => 'drupal_get_form', 
+    'page arguments' => array('uc_member_pricing_delete_price_form', 5),
+    'access callback' => 'uc_member_pricing_admin_access',
+    'access arguments' => array(1),
+    'weight' => -4,
+    'type' => MENU_CALLBACK,
+    'file' => 'uc_member_pricing.admin.inc',
+  );
+  
+  return $items;
+}
+
+//------------------------------------------------------------------------------
+
+/**
+ * Implementation of hook_theme().
+ *
+ * @see http://api.drupal.org/api/function/hook_theme/6
+ */
+function uc_member_pricing_theme( ) {  
+  return array(
+    'uc_member_pricing_rule_listing' => array(
+      'arguments' => array( 'node' => NULL, 'price_rules' => NULL ),
+      'file'      => 'uc_member_pricing.admin.inc',
+    ),  
+  );  
+}
+
+//------------------------------------------------------------------------------
+// Ubercart hooks
+//------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------
+// Menu access handlers
+//------------------------------------------------------------------------------
+
+function uc_member_pricing_admin_access( $node ) {
+  if ( uc_product_is_product( $node ) && user_access( PERM_MANAGE_PRICES ) ) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+//------------------------------------------------------------------------------
+// Form handlers
+//------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------
+// Theme functions
+//------------------------------------------------------------------------------
+
+
+//------------------------------------------------------------------------------
+// Internal utilities
+//------------------------------------------------------------------------------
+
+function member_price_rule_load( $ppid ) {
+  return uc_member_pricing_select_rules( array( 'ppid' => $ppid ) );  
+}
+
+//------------------------------------------------------------------------------
