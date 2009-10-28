@@ -87,18 +87,18 @@ function uc_member_pricing_menu( ) {
     'access callback' => 'uc_member_pricing_admin_access',
     'access arguments' => array(1),
     'weight' => -8,
-    'type' => MENU_CALLBACK,
+    'type' => MENU_LOCAL_TASK,
     'file' => 'uc_member_pricing.admin.inc',
   );
   
   $items['node/%node/edit/prices/edit/%member_price_rule'] = array(
     'title' => 'Edit product price rule',
     'page callback' => 'drupal_get_form', 
-    'page arguments' => array('uc_member_pricing_edit_price_form', 5),
+    'page arguments' => array('uc_member_pricing_edit_price_form', 1, 5),
     'access callback' => 'uc_member_pricing_admin_access',
     'access arguments' => array(1),
     'weight' => -6,
-    'type' => MENU_CALLBACK,
+    'type' => MENU_LOCAL_TASK,
     'file' => 'uc_member_pricing.admin.inc',
   );
     
@@ -109,7 +109,7 @@ function uc_member_pricing_menu( ) {
     'access callback' => 'uc_member_pricing_admin_access',
     'access arguments' => array(1),
     'weight' => -4,
-    'type' => MENU_CALLBACK,
+    'type' => MENU_LOCAL_TASK,
     'file' => 'uc_member_pricing.admin.inc',
   );
   
@@ -163,6 +163,7 @@ function uc_member_pricing_admin_access( $node ) {
 //------------------------------------------------------------------------------
 
 function member_price_rule_load( $ppid ) {
+  module_load_include( 'inc', 'uc_member_pricing', 'uc_member_pricing.api' );
   return uc_member_pricing_select_rules( array( 'ppid' => $ppid ) );  
 }
 
