@@ -105,7 +105,7 @@ function uc_member_pricing_menu( ) {
   $items['node/%node/edit/prices/delete/%member_price_rule'] = array(
     'title' => 'Delete product price rule',
     'page callback' => 'drupal_get_form', 
-    'page arguments' => array('uc_member_pricing_delete_price_form', 5),
+    'page arguments' => array('uc_member_pricing_delete_price_form', 1, 5),
     'access callback' => 'uc_member_pricing_admin_access',
     'access arguments' => array(1),
     'weight' => -4,
