@@ -64,7 +64,8 @@ function uc_member_pricing_add_rule( $nid, $type, $xid, $price,
       )
     );
   
-    if ( $pricing_rule ) {  
+    if ( $pricing_rule ) {
+      $pricing_rule[ 'price' ] = $price;  
       return uc_member_pricing_save_rule( $pricing_rule, TRUE );
     }
   }
