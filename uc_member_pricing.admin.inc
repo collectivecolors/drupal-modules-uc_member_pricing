@@ -5,7 +5,6 @@
 // Menu callbacks
 //------------------------------------------------------------------------------
 
-
 function uc_member_pricing_list_prices( $node ) {
   module_load_include( 'inc', 'uc_member_pricing', 'uc_member_pricing.api' );
               
@@ -15,12 +14,14 @@ function uc_member_pricing_list_prices( $node ) {
   return theme( 'uc_member_pricing_rule_listing', $node, $price_rules );
 }
 
+//------------------------------------------------------------------------------
 
 function uc_member_pricing_add_price_form( $form_state, $node ) {
   module_load_include( 'inc', 'uc_member_pricing', 'uc_member_pricing.api' );  
   return uc_member_pricing_rule_form( $node, NULL );
 }
 
+//------------------------------------------------------------------------------
 
 function uc_member_pricing_edit_price_form( $form_state, $node, $price_rule ) {
   module_load_include( 'inc', 'uc_member_pricing', 'uc_member_pricing.api' );  
@@ -28,11 +29,30 @@ function uc_member_pricing_edit_price_form( $form_state, $node, $price_rule ) {
 }
 
 
-function uc_member_pricing_delete_price_form( $form_state, $price_rule ) {
-  krumo($node);
-  krumo($price_rule);  
-}
+//------------------------------------------------------------------------------
 
+function uc_member_pricing_delete_price_form( $form_state, $node, $price_rule ){
+  module_load_include( 'inc', 'uc_member_pricing', 'uc_member_pricing.api' );
+  
+  $form[ 'nid' ] = array( 
+  	'#type' => 'hidden', 
+  	'#value' => $node->nid,
+  );
+  $form[ 'ppid'] = array(
+    '#type' => 'hidden',
+    '#value' => $price_rule[ 'ppid' ],
+  );
+  
+  $form[ '#submit' ][ ] = 'uc_member_pricing_rule_delete_confirm_submit';
+
+  return confirm_form( $form,
+    t( 'Are you sure you want to delete this rule?' ),
+		"node/$node->nid/edit/prices", 
+    t( 'This action cannot be undone.' ),
+    t( 'Delete' ), 
+    t( 'Cancel' ) 
+  );
+}
 
 //------------------------------------------------------------------------------
 // Form handlers
@@ -88,6 +108,15 @@ function uc_member_pricing_rule_form( $node, $price_rule ) {
     '#weight' => 12,
   );
   
+  if ( $price_rule ) {
+    $form[ 'delete' ] = array(
+      '#type' => 'submit',
+      '#submit' => array( 'uc_member_pricing_rule_delete_submit' ),
+      '#value'=> t( 'Delete rule' ),
+      '#weight' => 14,
+    );
+  }
+  
   $form = array_merge(
     $form,
     uc_member_pricing_user_form( $price_rule ),
@@ -107,7 +136,7 @@ function uc_member_pricing_user_form( $price_rule ) {
   // * username [ textfield / autocomplete ] - uid
   
   if ( $price_rule 
-      && $price_rule[ 'type' ] != TYPE_USER 
+      && $price_rule[ 'type' ] == TYPE_USER 
       && array_key_exists( 'xid', $price_rule ) ) {
          
     $account = user_load( $price_rule[ 'xid' ] );
@@ -245,14 +274,79 @@ function uc_member_pricing_rule_form_submit( $form, &$form_state ) {
 }
 
 //------------------------------------------------------------------------------
+
+function uc_member_pricing_rule_delete_submit( $form, &$form_state ) {
+  $node       = $form[ '#node' ];
+  $price_rule = $form[ '#price_rule' ];
+  
+  $form_state[ 'redirect' ] = "node/$node->nid/edit/prices/delete/" 
+                            . $price_rule[ 'ppid' ];
+}
+
+//------------------------------------------------------------------------------
+
+function uc_member_pricing_rule_delete_confirm_submit( $form, &$form_state ) {
+  
+  $nid = $form_state[ 'values' ][ 'nid' ];
+  
+  if ( $form_state['values']['confirm'] ) {
+    uc_member_pricing_remove_rule( $form_state[ 'values' ][ 'ppid' ] );  
+  }
+  
+  $form_state[ 'redirect' ] = "node/$nid/edit/prices";
+}
+
+//------------------------------------------------------------------------------
 // Theme functions
 //------------------------------------------------------------------------------
 
-
 function theme_uc_member_pricing_rule_listing( $node, $price_rules ) {
-  $output = '';
-
-  krumo( $price_rules );
+  
+  $header = array( t( 'Type' ), t( 'Applies to' ), t( 'Price' ), '' );
+  $rows   = array( );
+  
+  foreach ( $price_rules as $rule ) {
+    $row = array( );
+    
+    switch ( $rule[ 'type' ] ) {
+      
+      case TYPE_USER:
+        $type = t( 'User rule' );
+        
+        $account  = user_load( array( 'uid' => $rule[ 'xid'] ) );
+        $for_name = $account->name;        
+        break;
+        
+      case TYPE_ROLE:
+        $type = t( 'Role based rule' );
+        
+        $roles = user_roles();
+        $for_name = $roles[ $rule[ 'xid' ] ];
+        break;
+    }
+    
+    $row[ ] = $type;               
+    $row[ ] = $for_name;
+    $row[ ] = $rule[ 'price' ];
+    
+    $row[ ] = l( t( 'edit' ), 
+    	"node/$node->nid/edit/prices/edit/" . $rule[ 'ppid' ], 
+      array( 'class' => 'edit-rule-link' ) 
+    ) . ' | '
+    . l( t( 'delete' ),
+      "node/$node->nid/edit/prices/delete/" . $rule[ 'ppid' ],
+      array( 'class' => 'delete-rule-link' )
+    );
+    
+    $rows[ ] = $row;
+  }
+  
+  $output = theme('table', $header, $rows);
+  
+  $output .= l( t( 'Add new price rule' ), 
+  	"node/$node->nid/edit/prices/add", 
+    array( 'class' => 'add-rule-link') 
+  );
   
   return $output;
 }
