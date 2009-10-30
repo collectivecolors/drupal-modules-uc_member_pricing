@@ -1,12 +1,9 @@
 <?php
-
 // $Id$
-
 
 //------------------------------------------------------------------------------
 // Installation / removal
 //------------------------------------------------------------------------------
-
 
 /**
  * Implementation of hook_install().
@@ -27,7 +24,7 @@ function uc_member_pricing_uninstall( ) {
 
   drupal_uninstall_schema( 'uc_member_pricing' );
   
-  // Delete individual price settings.
+  // Delete individual price settings. ( if there are any )
   $result = db_query( 
     "SELECT name FROM {variable} WHERE name LIKE 'uc_member_pricing_%'" );
   
@@ -39,7 +36,6 @@ function uc_member_pricing_uninstall( ) {
 //------------------------------------------------------------------------------
 // Database
 //------------------------------------------------------------------------------
-
 
 /**
  * Implementation of hook_schema().
@@ -111,7 +107,6 @@ function uc_member_pricing_schema( ) {
   
   return $schema;
 }
-
 
 //------------------------------------------------------------------------------
 // Updates

@@ -10,7 +10,7 @@ function uc_member_pricing_list_prices( $node ) {
               
   $price_rules = uc_member_pricing_select_rules( 
     array( 'nid' => $node->nid ), TRUE );
-  
+    
   return theme( 'uc_member_pricing_rule_listing', $node, $price_rules );
 }
 
@@ -78,7 +78,7 @@ function uc_member_pricing_rule_form( $node, $price_rule ) {
     '#id' => 'rule_type',
   	'#title' => t( 'Pricing rule type' ),
   	'#default_value' => ( 
-      $price_rule && $price_rule[ 'type' ] == TYPE_ROLE ? 1 : 0 
+      $price_rule && $price_rule[ 'type' ] == UCMP_TYPE_ROLE ? 1 : 0 
     ),
   	'#options' => array( t( 'User' ), t( 'Role' ) ),
     '#weight' => -10,
@@ -136,7 +136,7 @@ function uc_member_pricing_user_form( $price_rule ) {
   // * username [ textfield / autocomplete ] - uid
   
   if ( $price_rule 
-      && $price_rule[ 'type' ] == TYPE_USER 
+      && $price_rule[ 'type' ] == UCMP_TYPE_USER 
       && array_key_exists( 'xid', $price_rule ) ) {
          
     $account = user_load( $price_rule[ 'xid' ] );
@@ -165,7 +165,7 @@ function uc_member_pricing_role_form( $price_rule ) {
   // * role name [ select box ] - rid
   
   if ( $price_rule 
-      && $price_rule[ 'type' ] != TYPE_ROLE
+      && $price_rule[ 'type' ] != UCMP_TYPE_ROLE
       && array_key_exists( 'xid', $price_rule ) ) {
          
     $rid = $price_rule[ 'xid' ];
@@ -195,12 +195,12 @@ function uc_member_pricing_rule_form_validate( $form, &$form_state ) {
   
   if ( $form_state[ 'values' ][ 'rule_type' ] ) {
     // Role based rule.
-    $type = TYPE_ROLE;
+    $type = UCMP_TYPE_ROLE;
     $xid  = $form_state[ 'values' ][ 'user_role' ];
   }
   else {
     // User based rule.
-    $type = TYPE_USER;
+    $type = UCMP_TYPE_USER;
     $xid  = $form_state[ 'values' ][ 'user_name' ];
 
     if ( !$xid || !( $account = user_load( array( 'name' => $xid ) ) ) ) {
@@ -236,7 +236,7 @@ function uc_member_pricing_rule_form_validate( $form, &$form_state ) {
   }
   else {
     // Adjust form values for submit ( to save some processing time ).
-    $form_state[ 'values' ][ 'ppid' ] = $price_rule->ppid;
+    $form_state[ 'values' ][ 'ppid' ] = $price_rule[ 'ppid' ];
   }
   
   $price = _uc_member_pricing_validate_price($form_state['values'][ 'price' ]);
@@ -310,14 +310,14 @@ function theme_uc_member_pricing_rule_listing( $node, $price_rules ) {
     
     switch ( $rule[ 'type' ] ) {
       
-      case TYPE_USER:
+      case UCMP_TYPE_USER:
         $type = t( 'User rule' );
         
         $account  = user_load( array( 'uid' => $rule[ 'xid'] ) );
         $for_name = $account->name;        
         break;
         
-      case TYPE_ROLE:
+      case UCMP_TYPE_ROLE:
         $type = t( 'Role based rule' );
         
         $roles = user_roles();
@@ -374,3 +374,5 @@ function _uc_member_pricing_validate_price( $price ) {
   
   return FALSE;
 }
+
+//------------------------------------------------------------------------------

@@ -48,6 +48,8 @@ function uc_member_pricing_select_rules( $conditions, $force_array = FALSE ) {
     return ( count( $pricing_rules ) ? $pricing_rules[ 0 ] : FALSE );
   }
   
+  usort( $pricing_rules, '_uc_member_pricing_sort_rules' );
+   
   return $pricing_rules;  
 }
 
@@ -144,6 +146,26 @@ function uc_member_pricing_remove_rule( $pricing_rule ) {
   }
   
   db_query( 'DELETE FROM {uc_member_prices} WHERE ppid = %d', $ppid );
+}
+
+//------------------------------------------------------------------------------
+
+function _uc_member_pricing_sort_rules( $rule1, $rule2 ) {
+  
+  // First sort by node id.
+  if ( $rule1[ 'nid' ] != $rule2[ 'nid' ] ) {
+    return ( $rule1[ 'nid' ] < $rule2[ 'nid' ] ? -1 : 1 );   
+  }  
+  // Then sort by type.
+  if ( $rule1[ 'type' ] != $rule2[ 'type' ] ) {
+    return ( $rule1[ 'type' ] == TYPE_ROLE ? -1 : 1 );
+  }
+  // Then sort by xid.
+  if ( $rule1[ 'xid' ] != $rule2[ 'xid' ] ) {
+    return ( $rule1[ 'xid' ] < $rule2[ 'xid' ] ? -1 : 1 );  
+  }
+  // They are the same. ( This should not happen )
+  return 0;
 }
 
 //------------------------------------------------------------------------------
