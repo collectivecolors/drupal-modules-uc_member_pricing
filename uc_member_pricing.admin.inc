@@ -223,11 +223,11 @@ function uc_member_pricing_rule_form_validate( $form, &$form_state ) {
     );
     
     if ( $existing_rule ) {
-      form_set_error( NULL, 
+      form_set_error( '', 
         t( 'This rule already exists.'
         	 . '  Go to the !edit_link to edit.',
         	array( '!edit_link' => l( t( 'edit page' ), 
-        			"node/$node->nid/edit/prices/edit/$existing_rule->ppid" 
+        			"node/$node->nid/edit/prices/edit/" . $existing_rule[ 'ppid' ] 
         	  ) 
         	) 
         ) 
