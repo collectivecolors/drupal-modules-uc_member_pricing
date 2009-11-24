@@ -303,45 +303,50 @@ function uc_member_pricing_rule_delete_confirm_submit( $form, &$form_state ) {
 function theme_uc_member_pricing_rule_listing( $node, $price_rules ) {
   
   $header = array( t( 'Type' ), t( 'Applies to' ), t( 'Price' ), '' );
-  $rows   = array( );
+  $rules  = _uc_member_pricing_separate_prices( $price_rules );
   
-  foreach ( $price_rules as $rule ) {
-    $row = array( );
-    
-    switch ( $rule[ 'type' ] ) {
+  foreach ( $rules as $nid => $node_rules ) {
+	  foreach ( $node_rules as $type => $type_rules ) {
+	    $rows = array( );
+	    
+	    foreach ( $type_rules as $rule ) {
+	      $row = array( );
+	      
+        switch ( $rule[ 'type' ] ) {
       
-      case UCMP_TYPE_USER:
-        $type = t( 'User rule' );
+          case UCMP_TYPE_USER:
+            $type = t( 'User rule' );
         
-        $account  = user_load( array( 'uid' => $rule[ 'xid'] ) );
-        $for_name = $account->name;        
-        break;
+            $account  = user_load( array( 'uid' => $rule[ 'xid'] ) );
+            $for_name = $account->name;        
+            break;
         
-      case UCMP_TYPE_ROLE:
-        $type = t( 'Role based rule' );
+          case UCMP_TYPE_ROLE:
+            $type = t( 'Role based rule' );
         
-        $roles = user_roles();
-        $for_name = $roles[ $rule[ 'xid' ] ];
-        break;
-    }
+            $roles = user_roles();
+            $for_name = $roles[ $rule[ 'xid' ] ];
+            break;
+        }
+        
+        $row[ ] = $type;               
+        $row[ ] = $for_name;
+        $row[ ] = $rule[ 'price' ];
     
-    $row[ ] = $type;               
-    $row[ ] = $for_name;
-    $row[ ] = $rule[ 'price' ];
+        $row[ ] = l( t( 'edit' ), 
+    			"node/$node->nid/edit/prices/edit/" . $rule[ 'ppid' ], 
+          array( 'class' => 'edit-rule-link' ) 
+        ) . ' | '
+        . l( t( 'delete' ),
+      		"node/$node->nid/edit/prices/delete/" . $rule[ 'ppid' ],
+          array( 'class' => 'delete-rule-link' )
+        );
     
-    $row[ ] = l( t( 'edit' ), 
-    	"node/$node->nid/edit/prices/edit/" . $rule[ 'ppid' ], 
-      array( 'class' => 'edit-rule-link' ) 
-    ) . ' | '
-    . l( t( 'delete' ),
-      "node/$node->nid/edit/prices/delete/" . $rule[ 'ppid' ],
-      array( 'class' => 'delete-rule-link' )
-    );
-    
-    $rows[ ] = $row;
-  }
-  
-  $output = theme('table', $header, $rows);
+	      $rows[ ] = $row;
+	    }
+	    $output .= theme('table', $header, $rows);
+	  }
+  }  
   
   $output .= l( t( 'Add new price rule' ), 
   	"node/$node->nid/edit/prices/add", 
@@ -373,6 +378,20 @@ function _uc_member_pricing_validate_price( $price ) {
   }
   
   return FALSE;
+}
+
+//------------------------------------------------------------------------------
+// Internal utilities
+//------------------------------------------------------------------------------
+
+function _uc_member_pricing_separate_prices( $pricing_rules ) {
+  $rules = array( );
+	
+	foreach ( $pricing_rules as $rule ) {
+	  $rules[ $rule[ 'nid' ] ][ $rule[ 'type' ] ][ ] = $rule;  
+	}
+	
+	return $rules;  
 }
 
 //------------------------------------------------------------------------------
