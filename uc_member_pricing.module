@@ -193,7 +193,63 @@ function uc_member_pricing_nodeapi( &$node, $op, $a3 = NULL, $a4 = NULL ) {
         }
       }
       break;
+      
+    case 'delete':
+      // Remove all member prices for products being deleted.
+      module_load_include( 'inc', 'uc_member_pricing', 'uc_member_pricing.api' );
+      
+      $price_rules = uc_member_pricing_select_rules( 
+        array( 'nid' => $node->nid ),
+        TRUE 
+      );
+
+      foreach ( $price_rules as $rule ) {
+        uc_member_pricing_remove_rule( $rule );
+      }
   }
+}
+
+//------------------------------------------------------------------------------
+
+/**
+ * Implementation of hook_user(). 
+ *
+ * @see http://api.drupal.org/api/function/hook_user/6
+ */
+function uc_member_pricing_user($op, &$edit, &$account, $category = NULL) {
+  
+  switch ($op) {
+    case 'delete':
+      // Clear all user rules when the corresponding user is deleted.
+      module_load_include( 'inc', 'uc_member_pricing', 'uc_member_pricing.api' );
+      
+      $pricing_rules = uc_member_pricing_select_rules(
+        array(
+          'type' => UCMP_TYPE_USER,
+        	'xid'  => $account->uid,
+        ),
+        TRUE
+      );
+      
+      foreach ($pricing_rules as $rule) {
+        uc_member_pricing_remove_rule($rule);
+      }      
+      break;     
+  }
+}
+
+//------------------------------------------------------------------------------
+
+/**
+ * Implementation of hook_form_alter(). 
+ *
+ * @see http://api.drupal.org/api/function/hook_form_alter/6
+ */
+function uc_member_pricing_form_alter(&$form, $form_state, $form_id) {
+	
+	if ($form_id == 'user_admin_role') {
+		$form['#submit'][] = 'uc_member_pricing_user_admin_role_submit';		
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -205,6 +261,30 @@ function uc_member_pricing_admin_access( $node ) {
     return TRUE;
   }
   return FALSE;
+}
+
+//------------------------------------------------------------------------------
+// Form handlers
+//------------------------------------------------------------------------------
+
+function uc_member_pricing_user_admin_role_submit($form, &$form_state) {
+
+	if ($form_state['values']['op'] == t('Delete role')) {
+		// Clear all role based rules when the corresponding role is deleted.
+    module_load_include('inc', 'uc_member_pricing', 'uc_member_pricing.api');
+      
+    $pricing_rules = uc_member_pricing_select_rules(
+      array(
+        'type' => UCMP_TYPE_ROLE,
+      	'xid'  => $form_state['values']['rid'],
+      ),
+      TRUE
+    );
+      
+    foreach ($pricing_rules as $rule) {
+      uc_member_pricing_remove_rule($rule);
+    }
+	}
 }
 
 //------------------------------------------------------------------------------
