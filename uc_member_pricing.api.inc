@@ -1,5 +1,5 @@
 <?php
-//$Id$
+//$Id: uc_member_pricing.api.inc,v 1.1 2009/11/30 17:23:19 awebb Exp $
 
 //------------------------------------------------------------------------------
 // Database manipulation functions

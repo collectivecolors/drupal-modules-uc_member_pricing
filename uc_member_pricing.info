@@ -1,4 +1,4 @@
-; $Id$
+; $Id: uc_member_pricing.info,v 1.1.2.1 2009/11/30 18:03:16 awebb Exp $
 name = UC Member Pricing
 description = Specify individual prices for products to site users based upon user name or role.
 dependencies[] = uc_product
@@ -6,5 +6,9 @@ dependencies[] = uc_cart
 package = "Ubercart - extra"
 core = 6.x
 php = 5.0
+; Information added by drupal.org packaging script on 2009-11-30
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "uc_member_pricing"
+datestamp = "1259604988"
 
-version = "6.x-1.0"
