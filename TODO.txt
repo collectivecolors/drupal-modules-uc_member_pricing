@@ -1,0 +1,17 @@
+// $Id$
+
+********************************************************************************
+********************************************************************************
+
+ --------
+|  TODO  |
+ --------
+ 
+1. Allow for the ability to create global product user or role based rules.  
+   These would be used in the absense of any product specific rules.  Only 
+   percentage based rules would be applicable though.
+
+2. This module shares a lot of administrative interface code with the 
+uc_bulk_discount module to make the interfaces consistent for the client.
+Maybe abstract the administrative functionality into a general purpose module
+that these two modules require?
